@@ -1,8 +1,8 @@
 package reader
 
 import (
+	"gen/config"
 	"gen/enums"
-	"gen/internal/generator"
 	"gen/internal/reader/options"
 	"gen/internal/tree"
 	"gen/internal/tree/rawContent"
@@ -12,24 +12,20 @@ import (
 )
 
 type Reader struct {
-	Opts options.Options
+	opts options.Options
 }
 
-func NewReader(opts options.Options) Reader {
+func NewReader(config config.Config) Reader {
+	opts := options.NewOptions(config)
 	return Reader{opts}
 }
 
-func (r Reader) ParseTreeGenerator(destination string) generator.Generator {
+func (r Reader) ParseTree(destination string) tree.Leaf {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (r Reader) ParseStructGenerator() generator.Generator {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (r Reader) ParseTree(destination string) (*tree.Leaf, error) {
+func (r Reader) parseTemplateToTree(destination string) (*tree.Leaf, error) {
 	var err error
 	var leafNode tree.Leaf
 
@@ -46,11 +42,11 @@ func (r Reader) ParseTree(destination string) (*tree.Leaf, error) {
 	}
 
 	if leafStat.IsDir() {
-		if ulti.InArray(r.Opts.IgnoreDirectory, leafNode.Name) {
+		if ulti.InArray(r.opts.IgnoreDirectory, leafNode.Name) {
 			return nil, nil
 		}
 
-		if !r.Opts.IncludeHiddenDir {
+		if !r.opts.IncludeHiddenDir {
 			if strings.HasPrefix(leafNode.Name, ".") {
 				return nil, nil
 			}
@@ -70,7 +66,7 @@ func (r Reader) ParseTree(destination string) (*tree.Leaf, error) {
 				return nil, err
 			}
 
-			subLeafNode, err := r.ParseTree(pathSubLeaf)
+			subLeafNode, err := r.parseTemplateToTree(pathSubLeaf)
 			if err != nil {
 				return nil, err
 			}

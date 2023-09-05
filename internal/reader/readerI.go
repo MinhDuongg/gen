@@ -1,8 +1,9 @@
 package reader
 
-import "gen/internal/generator"
+import (
+	"gen/internal/tree"
+)
 
 type Reader interface {
-	ParseTreeGenerator(source string) generator.Generator
-	ParseStructGenerator() generator.Generator
+	ParseTree(source string) tree.Leaf
 }

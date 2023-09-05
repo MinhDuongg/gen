@@ -1,6 +1,9 @@
 package options
 
-import "os"
+import (
+	"gen/config"
+	"os"
+)
 
 type Options struct {
 	CreateSubFolder  bool
@@ -8,10 +11,14 @@ type Options struct {
 	PermissionFile   os.FileMode
 }
 
-func DefaultGeneratorOption() Options {
+func defaultGeneratorOption() Options {
 	return Options{
 		CreateSubFolder:  false,
 		PermissionFolder: os.ModeDir,
 		PermissionFile:   os.ModePerm,
 	}
+}
+
+func NewOptions(conf config.Config) Options {
+	return defaultGeneratorOption()
 }

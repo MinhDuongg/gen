@@ -3,6 +3,7 @@ package treeGenerator
 import (
 	"context"
 	"fmt"
+	"gen/config"
 	"gen/enums"
 	"gen/internal/generator/options"
 	"gen/internal/tree"
@@ -12,27 +13,23 @@ import (
 
 type TreeGenerator struct {
 	Tree tree.Leaf
-	Opts options.Options
+	opts options.Options
 }
 
-func NewTreeGenerator(tree tree.Leaf, opts ...options.Options) TreeGenerator {
-	options := options.DefaultGeneratorOption()
-
-	if len(opts) != 0 {
-		options = opts[0]
-	}
+func NewTreeGenerator(tree tree.Leaf, config config.Config) TreeGenerator {
+	opts := options.NewOptions(config)
 
 	return TreeGenerator{
 		Tree: tree,
-		Opts: options,
+		opts: opts,
 	}
 }
 
 func (t TreeGenerator) Generate(ctx context.Context, destination string) error {
-	return t.CreateBoilerPlate(ctx, t.Tree, destination)
+	return t.createBoilerPlate(ctx, t.Tree, destination)
 }
 
-func (t TreeGenerator) CreateBoilerPlate(ctx context.Context, leaf tree.Leaf, destination string) error {
+func (t TreeGenerator) createBoilerPlate(ctx context.Context, leaf tree.Leaf, destination string) error {
 	var err error
 
 	if leaf.Name == "" {
@@ -51,7 +48,7 @@ func (t TreeGenerator) CreateBoilerPlate(ctx context.Context, leaf tree.Leaf, de
 	switch leaf.Type {
 	case enums.Directory:
 		{
-			err = os.Mkdir(leafDestination, t.Opts.PermissionFolder)
+			err = os.Mkdir(leafDestination, t.opts.PermissionFolder)
 
 			if err != nil {
 				if err != os.ErrExist {
@@ -91,7 +88,7 @@ func (t TreeGenerator) CreateBoilerPlate(ctx context.Context, leaf tree.Leaf, de
 				return err
 			}
 
-			err = os.Chmod(leafDestination, t.Opts.PermissionFile)
+			err = os.Chmod(leafDestination, t.opts.PermissionFile)
 			if err != nil {
 				return err
 			}
@@ -101,7 +98,7 @@ func (t TreeGenerator) CreateBoilerPlate(ctx context.Context, leaf tree.Leaf, de
 	}
 
 	for _, subLeaf := range leaf.SubLeafs {
-		err = t.CreateBoilerPlate(ctx, subLeaf, destination)
+		err = t.createBoilerPlate(ctx, subLeaf, destination)
 		if err != nil {
 			return err
 		}
