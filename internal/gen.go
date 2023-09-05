@@ -21,7 +21,10 @@ func Init(ctx context.Context, mode int64, source, destination string) error {
 	var tree tree.Leaf
 
 	if enums.OperationMode(mode) == enums.Template {
-		tree = reader.ParseTree(source)
+		tree, err = reader.ParseTree(source)
+		if err != nil {
+			return err
+		}
 	}
 
 	generator := treeGenerator.NewTreeGenerator(tree, cfg)

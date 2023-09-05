@@ -44,6 +44,9 @@ func (t TreeGenerator) createBoilerPlate(ctx context.Context, leaf tree.Leaf, de
 	}
 
 	leafDestination, err := ulti.PathConcat(destination, leaf.Name)
+	if err != nil {
+		return err
+	}
 
 	switch leaf.Type {
 	case enums.Directory:

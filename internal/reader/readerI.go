@@ -5,5 +5,5 @@ import (
 )
 
 type Reader interface {
-	ParseTree(source string) tree.Leaf
+	ParseTree(source string) (tree.Leaf, error)
 }

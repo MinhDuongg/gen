@@ -20,9 +20,13 @@ func NewReader(config config.Config) Reader {
 	return Reader{opts}
 }
 
-func (r Reader) ParseTree(destination string) tree.Leaf {
-	//TODO implement me
-	panic("implement me")
+func (r Reader) ParseTree(destination string) (tree.Leaf, error) {
+	parsedTree, err := r.parseTemplateToTree(destination)
+	if err != nil {
+		return tree.Leaf{}, err
+	}
+
+	return *parsedTree, nil
 }
 
 func (r Reader) parseTemplateToTree(destination string) (*tree.Leaf, error) {
