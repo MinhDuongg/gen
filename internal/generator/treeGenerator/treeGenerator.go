@@ -8,12 +8,14 @@ import (
 	"gen/internal/generator/options"
 	"gen/internal/tree"
 	"gen/ulti"
+	"log"
 	"os"
 )
 
 type TreeGenerator struct {
-	Tree tree.Leaf
-	opts options.Options
+	Tree        tree.Leaf
+	destination string
+	opts        options.Options
 }
 
 func NewTreeGenerator(tree tree.Leaf, config config.Config) TreeGenerator {
@@ -26,26 +28,41 @@ func NewTreeGenerator(tree tree.Leaf, config config.Config) TreeGenerator {
 }
 
 func (t TreeGenerator) Generate(ctx context.Context, destination string) error {
-	return t.createBoilerPlate(ctx, t.Tree, destination)
+	leafDestination, err := t.createBoilerPlate(ctx, t.Tree, destination)
+	t.destination = leafDestination
+	return err
 }
 
-func (t TreeGenerator) createBoilerPlate(ctx context.Context, leaf tree.Leaf, destination string) error {
+func (t TreeGenerator) CleanUp(ctx context.Context) error {
+	if t.destination == "" {
+		return nil
+	}
+
+	err := os.RemoveAll(t.destination)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (t TreeGenerator) createBoilerPlate(ctx context.Context, leaf tree.Leaf, destination string) (string, error) {
 	var err error
 
 	if leaf.Name == "" {
 		if leaf.Type == enums.Directory {
-			return fmt.Errorf("Directory should have a specific name")
+			return "", fmt.Errorf("Directory should have a specific name")
 		}
 
 		leaf.Name, err = ulti.GenerateFileName()
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
 	leafDestination, err := ulti.PathConcat(destination, leaf.Name)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	switch leaf.Type {
@@ -55,57 +72,38 @@ func (t TreeGenerator) createBoilerPlate(ctx context.Context, leaf tree.Leaf, de
 
 			if err != nil {
 				if err != os.ErrExist {
-					return err
+					return leafDestination, err
 				}
 
 				break
 			}
 		}
-	case enums.GoFile:
+	default:
 		{
-			var f *os.File
-			f, err = os.Create(leafDestination)
-
-			if err != nil {
-				if err != os.ErrExist {
-					return err
-				}
-
-				f, err = os.Open(leafDestination)
-				if err != nil {
-					return err
-				}
-			}
-
 			if !leaf.Content.ContentAvailbility(ctx) {
-				return nil
+				return leafDestination, nil
 			}
-
 			content, err := leaf.Content.ContentWriter(ctx)
 			if err != nil {
-				return err
+				return leafDestination, err
 			}
 
-			_, err = f.Write(content)
+			err = os.WriteFile(leafDestination, content, t.opts.PermissionFile)
 			if err != nil {
-				return err
+				log.Println(err)
+				return leafDestination, err
 			}
 
-			err = os.Chmod(leafDestination, t.opts.PermissionFile)
-			if err != nil {
-				return err
-			}
-
-			return nil
+			return leafDestination, nil
 		}
 	}
 
 	for _, subLeaf := range leaf.SubLeafs {
-		err = t.createBoilerPlate(ctx, subLeaf, destination)
+		_, err = t.createBoilerPlate(ctx, subLeaf, leafDestination)
 		if err != nil {
-			return err
+			return leafDestination, err
 		}
 	}
 
-	return nil
+	return leafDestination, nil
 }

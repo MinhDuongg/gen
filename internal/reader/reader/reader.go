@@ -86,9 +86,15 @@ func (r Reader) parseTemplateToTree(destination string) (*tree.Leaf, error) {
 	}
 
 	leafNode.Name = leafStat.Name()
+	leafNode.Type = enums.Text
+
+	if strings.HasSuffix(leafNode.Name, "go") {
+		leafNode.Type = enums.GoFile
+	}
+
 	var leafContent []byte
 
-	_, err = leaf.Read(leafContent)
+	leafContent, err = os.ReadFile(destination)
 	if err != nil {
 		return nil, err
 	}

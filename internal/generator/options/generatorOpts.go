@@ -14,7 +14,7 @@ type Options struct {
 func defaultGeneratorOption() Options {
 	return Options{
 		CreateSubFolder:  false,
-		PermissionFolder: os.ModeDir,
+		PermissionFolder: os.ModePerm,
 		PermissionFile:   os.ModePerm,
 	}
 }

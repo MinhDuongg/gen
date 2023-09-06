@@ -11,11 +11,9 @@ func NewRawContent(content []byte) RawContent {
 }
 
 func (r RawContent) ContentAvailbility(ctx context.Context) bool {
-	return len(r.Content) == 0
+	return len(r.Content) != 0
 }
 
 func (r RawContent) ContentWriter(ctx context.Context) ([]byte, error) {
 	return r.Content, nil
 }
-
-
